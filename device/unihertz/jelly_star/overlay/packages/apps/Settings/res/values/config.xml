@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AOSP's video for the "How to set up Face Unlock" screen is an empty file. Use its animation. -->
+    <bool name="config_face_education_use_lottie">true</bool>
+</resources>

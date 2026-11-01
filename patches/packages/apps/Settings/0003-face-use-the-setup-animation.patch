@@ -1,0 +1,34 @@
+diff --git a/src/com/android/settings/biometrics/face/FaceEnrollEducation.java b/src/com/android/settings/biometrics/face/FaceEnrollEducation.java
+index b1407e9..0c3557a 100644
+--- a/src/com/android/settings/biometrics/face/FaceEnrollEducation.java
++++ b/src/com/android/settings/biometrics/face/FaceEnrollEducation.java
+@@ -168,11 +168,9 @@ public class FaceEnrollEducation extends BiometricEnrollBase {
+         if (mIsUsingLottie) {
+             mIllustrationDefault.stop();
+             mIllustrationDefault.setVisibility(View.INVISIBLE);
+-            mIllustrationLottie.setAnimation(mIsUsingExpressiveStyle
+-                    ? R.raw.face_education_lottie_expressive : R.raw.face_education_lottie);
+-            if (mIsUsingExpressiveStyle) {
+-                setupllIllustrationAnim(mIllustrationLottie);
+-            }
++            // face_education_lottie is empty in AOSP. This is the only animation it provides.
++            mIllustrationLottie.setAnimation(R.raw.face_education_lottie_expressive);
++            setupllIllustrationAnim(mIllustrationLottie);
+             mIllustrationLottie.setVisibility(View.VISIBLE);
+ 
+             mIllustrationLottie.addAnimatorListener(mA11yUpdater);
+@@ -543,11 +541,9 @@ public class FaceEnrollEducation extends BiometricEnrollBase {
+ 
+     private void showDefaultIllustration() {
+         if (mIsUsingLottie) {
+-            mIllustrationLottie.setAnimation(mIsUsingExpressiveStyle
+-                    ? R.raw.face_education_lottie_expressive : R.raw.face_education_lottie);
+-            if (mIsUsingExpressiveStyle) {
+-                setupllIllustrationAnim(mIllustrationLottie);
+-            }
++            // face_education_lottie is empty in AOSP. This is the only animation it provides.
++            mIllustrationLottie.setAnimation(R.raw.face_education_lottie_expressive);
++            setupllIllustrationAnim(mIllustrationLottie);
+             mIllustrationLottie.setVisibility(View.VISIBLE);
+             forceConfigureA11yDelegate(true);
+             mIllustrationLottie.playAnimation();

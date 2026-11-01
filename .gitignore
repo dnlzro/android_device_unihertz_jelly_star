@@ -1,0 +1,6 @@
+.DS_Store
+
+# Derived from stock firmware. tools/restore-stock-files.sh puts these back.
+/device/unihertz/jelly_star/ims/ImsService.apk
+/device/unihertz/jelly_star/ims/lib64/
+/device/unihertz/jelly_star/ims/com.mediatek.ims.config.xml

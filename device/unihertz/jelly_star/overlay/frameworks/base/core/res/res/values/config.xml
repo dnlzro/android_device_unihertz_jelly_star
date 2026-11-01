@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stock gets this from MtkImsManager; AOSP's ImsManager reads this flag. -->
+    <bool name="config_device_volte_available">true</bool>
+    <bool name="config_device_wfc_ims_available">true</bool>
+
+    <!-- Wi-Fi transport for IMS. Stock has these in its own phone app. -->
+    <string name="config_wlan_data_service_package" translatable="false">com.jellystar.iwlan</string>
+    <string name="config_wlan_data_service_class" translatable="false">com.jellystar.iwlan.WlanDataService</string>
+    <string name="config_wlan_network_service_package" translatable="false">com.jellystar.iwlan</string>
+    <string name="config_wlan_network_service_class" translatable="false">com.jellystar.iwlan.WlanNetworkService</string>
+    <string name="config_qualified_networks_service_package" translatable="false">com.jellystar.iwlan</string>
+    <string name="config_qualified_networks_service_class" translatable="false">com.jellystar.iwlan.WlanQualifiedNetworksService</string>
+
+    <!-- The jack is reported as an input switch, not a uevent. -->
+    <bool name="config_useDevInputEventForAudioJack">true</bool>
+
+    <!-- The RGB LED beside the earpiece. Stock's value is false because its Agui layer drives it. -->
+    <bool name="config_intrusiveNotificationLed">true</bool>
+    <!-- When flashing, the lights HAL blinks one channel only, red first, so white would look
+         like the battery warning. -->
+    <color name="config_defaultNotificationColor">#ff0000ff</color>
+</resources>

@@ -1,0 +1,175 @@
+diff --git a/src/com/android/settings/biometrics/face/FaceEnrollPreviewFragment.java b/src/com/android/settings/biometrics/face/FaceEnrollPreviewFragment.java
+index 853ca7c..64f8fd7 100644
+--- a/src/com/android/settings/biometrics/face/FaceEnrollPreviewFragment.java
++++ b/src/com/android/settings/biometrics/face/FaceEnrollPreviewFragment.java
+@@ -18,7 +18,9 @@ package com.android.settings.biometrics.face;
+ 
+ import android.app.settings.SettingsEnums;
+ import android.content.Context;
++import android.graphics.ImageFormat;
+ import android.graphics.Matrix;
++import android.graphics.Rect;
+ import android.graphics.SurfaceTexture;
+ import android.hardware.camera2.CameraAccessException;
+ import android.hardware.camera2.CameraCaptureSession;
+@@ -27,9 +29,12 @@ import android.hardware.camera2.CameraDevice;
+ import android.hardware.camera2.CameraManager;
+ import android.hardware.camera2.CaptureRequest;
+ import android.hardware.camera2.params.StreamConfigurationMap;
++import android.media.Image;
++import android.media.ImageReader;
+ import android.os.Bundle;
+ import android.os.Handler;
+ import android.os.Looper;
++import android.os.UserHandle;
+ import android.util.Log;
+ import android.util.Size;
+ import android.util.TypedValue;
+@@ -42,6 +47,10 @@ import com.android.settings.R;
+ import com.android.settings.biometrics.BiometricEnrollSidecar;
+ import com.android.settings.core.InstrumentedPreferenceFragment;
+ 
++import java.io.File;
++import java.io.FileOutputStream;
++import java.io.IOException;
++import java.nio.ByteBuffer;
+ import java.util.Arrays;
+ 
+ /**
+@@ -53,8 +62,8 @@ public class FaceEnrollPreviewFragment extends InstrumentedPreferenceFragment
+ 
+     private static final String TAG = "FaceEnrollPreviewFragment";
+ 
+-    private static final int MAX_PREVIEW_WIDTH = 1920;
+-    private static final int MAX_PREVIEW_HEIGHT = 1080;
++    private static final int MAX_PREVIEW_WIDTH = 640;
++    private static final int MAX_PREVIEW_HEIGHT = 480;
+ 
+     private Handler mHandler = new Handler(Looper.getMainLooper());
+     private CameraManager mCameraManager;
+@@ -64,6 +73,7 @@ public class FaceEnrollPreviewFragment extends InstrumentedPreferenceFragment
+     private CameraCaptureSession mCaptureSession;
+     private CaptureRequest mPreviewRequest;
+     private Size mPreviewSize;
++    private ImageReader mImageReader;
+     private ParticleCollection.Listener mListener;
+ 
+     // View used to contain the circular cutout and enrollment animation drawable
+@@ -111,6 +121,14 @@ public class FaceEnrollPreviewFragment extends InstrumentedPreferenceFragment
+         }
+     };
+ 
++    private final ImageReader.OnImageAvailableListener mImageAvailableListener = reader -> {
++        try (Image image = reader.acquireNextImage()) {
++            if (image != null) {
++                saveEnrollmentFrame(image);
++            }
++        }
++    };
++
+     private final CameraDevice.StateCallback mCameraStateCallback =
+             new CameraDevice.StateCallback() {
+ 
+@@ -130,8 +148,14 @@ public class FaceEnrollPreviewFragment extends InstrumentedPreferenceFragment
+                         mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                 mPreviewRequestBuilder.addTarget(surface);
+ 
++                // The face HAL takes its enrollment frames from a file, so feed it from here too.
++                mImageReader = ImageReader.newInstance(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT,
++                        ImageFormat.YUV_420_888, 2 /* maxImages */);
++                mImageReader.setOnImageAvailableListener(mImageAvailableListener, mHandler);
++                mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
++
+                 // Create a CameraCaptureSession for camera preview
+-                mCameraDevice.createCaptureSession(Arrays.asList(surface),
++                mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
+                     new CameraCaptureSession.StateCallback() {
+ 
+                         @Override
+@@ -332,6 +356,75 @@ public class FaceEnrollPreviewFragment extends InstrumentedPreferenceFragment
+         mTextureView.setTransform(transform);
+     }
+ 
++    /**
++     * Hands a frame to the face HAL, which empties the file each time it has consumed one.
++     */
++    private static void saveEnrollmentFrame(Image image) {
++        File frame = enrollmentFrameFile();
++        if (frame.length() > 0) {
++            return;
++        }
++        // Renamed into place so the HAL can never read a partly written frame.
++        File temp = new File(frame.getParent(), frame.getName() + ".tmp");
++        try (FileOutputStream out = new FileOutputStream(temp)) {
++            out.write(toNv21(image));
++        } catch (IOException e) {
++            Log.e(TAG, "Unable to save enrollment frame", e);
++            return;
++        }
++        if (!temp.renameTo(frame)) {
++            Log.e(TAG, "Unable to move enrollment frame into place");
++        }
++    }
++
++    private static File enrollmentFrameFile() {
++        return new File("/data/vendor_de/" + UserHandle.myUserId()
++                + "/facedata/faceIdEnroll.yuv");
++    }
++
++    /**
++     * Empties the file, so no picture of the user's face stays behind after enrollment.
++     */
++    private static void clearEnrollmentFrame() {
++        try {
++            new FileOutputStream(enrollmentFrameFile()).close();
++        } catch (IOException e) {
++            Log.e(TAG, "Unable to clear enrollment frame", e);
++        }
++    }
++
++    private static byte[] toNv21(Image image) {
++        Rect crop = image.getCropRect();
++        int width = crop.width();
++        int height = crop.height();
++        byte[] nv21 = new byte[width * height * 3 / 2];
++        Image.Plane[] planes = image.getPlanes();
++
++        ByteBuffer y = planes[0].getBuffer();
++        int yStride = planes[0].getRowStride();
++        int yPixel = planes[0].getPixelStride();
++        int position = 0;
++        for (int row = 0; row < height; row++) {
++            int start = (crop.top + row) * yStride + crop.left * yPixel;
++            for (int column = 0; column < width; column++) {
++                nv21[position++] = y.get(start + column * yPixel);
++            }
++        }
++
++        ByteBuffer u = planes[1].getBuffer();
++        ByteBuffer v = planes[2].getBuffer();
++        int uvStride = planes[1].getRowStride();
++        int uvPixel = planes[1].getPixelStride();
++        for (int row = 0; row < height / 2; row++) {
++            int start = (crop.top / 2 + row) * uvStride + (crop.left / 2) * uvPixel;
++            for (int column = 0; column < width / 2; column++) {
++                nv21[position++] = v.get(start + column * uvPixel);
++                nv21[position++] = u.get(start + column * uvPixel);
++            }
++        }
++        return nv21;
++    }
++
+     private void closeCamera() {
+         if (mCaptureSession != null) {
+             mCaptureSession.close();
+@@ -341,5 +434,10 @@ public class FaceEnrollPreviewFragment extends InstrumentedPreferenceFragment
+             mCameraDevice.close();
+             mCameraDevice = null;
+         }
++        if (mImageReader != null) {
++            mImageReader.close();
++            mImageReader = null;
++            clearEnrollmentFrame();
++        }
+     }
+ }

@@ -1,0 +1,6 @@
+# Services MediaTek's ImsService registers, labelled as in the stock system_ext.
+imsa                                      u:object_r:radio_service:s0
+imtksms                                   u:object_r:radio_service:s0
+mtkIms                                    u:object_r:radio_service:s0
+mwis                                      u:object_r:radio_service:s0
+wfo                                       u:object_r:radio_service:s0

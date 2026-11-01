@@ -1,0 +1,19 @@
+android_app {
+    name: "JellyIwlan",
+    srcs: ["src/**/*.java"],
+    manifest: "AndroidManifest.xml",
+    platform_apis: true,
+    certificate: "platform",
+    privileged: true,
+    system_ext_specific: true,
+    dex_preopt: {
+        enabled: false,
+    },
+    optimize: {
+        enabled: false,
+    },
+    libs: [
+        "telephony-common",
+        "framework-annotations-lib",
+    ],
+}

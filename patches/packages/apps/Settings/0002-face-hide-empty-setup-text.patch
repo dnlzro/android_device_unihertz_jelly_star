@@ -1,0 +1,58 @@
+--- a/src/com/android/settings/biometrics/face/FaceEnrollIntroduction.java
++++ b/src/com/android/settings/biometrics/face/FaceEnrollIntroduction.java
+@@ -37,6 +37,7 @@
+ import android.text.method.LinkMovementMethod;
+ import android.util.Log;
+ import android.view.View;
++import android.view.ViewGroup;
+ import android.widget.ImageView;
+ import android.widget.LinearLayout;
+ import android.widget.ScrollView;
+@@ -175,6 +176,7 @@
+             iconRequireEyes.getBackground().setColorFilter(getIconColorFilter());
+             infoMessageRequireEyes.setText(getInfoMessageRequireEyes());
+         }
++        hideEmptyViews();
+ 
+ 
+         if (mFaceManager != null) {
+@@ -629,10 +631,39 @@
+             final ImageView iconLessSecure = findViewById(R.id.icon_less_secure);
+             infoRowLessSecure.setVisibility(View.VISIBLE);
+             iconLessSecure.getBackground().setColorFilter(getIconColorFilter());
++            runOnUiThread(this::hideEmptyViews);
+         }
+         updateDescriptionText();
+     }
+ 
++    /**
++     * Hides headings, messages and icon rows with no text. AOSP leaves many of these strings for
++     * the manufacturer to fill in.
++     */
++    private void hideEmptyViews() {
++        final View row = (View) findViewById(R.id.info_message_glasses).getParent();
++        hideIfEmpty((View) row.getParent());
++    }
++
++    /** Returns whether the view has no text, hiding it if it's a text view or a group. */
++    private static boolean hideIfEmpty(View view) {
++        boolean empty = true;
++        if (view instanceof TextView) {
++            empty = ((TextView) view).getText().length() == 0;
++        } else if (view instanceof ViewGroup) {
++            final ViewGroup group = (ViewGroup) view;
++            for (int i = 0; i < group.getChildCount(); i++) {
++                empty &= hideIfEmpty(group.getChildAt(i));
++            }
++        } else {
++            return true;
++        }
++        if (empty) {
++            view.setVisibility(View.GONE);
++        }
++        return empty;
++    }
++
+     protected boolean isPrivateProfile() {
+         return Utils.isPrivateProfile(mUserId, getApplicationContext());
+     }

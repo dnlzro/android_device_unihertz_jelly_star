@@ -1,0 +1,73 @@
+// ImsService.apk is built by tree/tools/build-ims-apk.sh from the stock APK.
+android_app_import {
+    name: "MtkImsService",
+    apk: "ims/ImsService.apk",
+    certificate: "platform",
+    privileged: true,
+    system_ext_specific: true,
+    dex_preopt: {
+        enabled: false,
+    },
+}
+
+// The IMS app loads libmtk_vt_wrapper when it starts, even with video calling unused, and crashes
+// without it. The other four are what it links against.
+cc_defaults {
+    name: "jelly_star_stock_lib_defaults",
+    compile_multilib: "64",
+    system_ext_specific: true,
+    check_elf_files: false,
+    strip: {
+        none: true,
+    },
+}
+
+cc_prebuilt_library_shared {
+    name: "libmtk_vt_wrapper",
+    defaults: ["jelly_star_stock_lib_defaults"],
+    arch: {
+        arm64: {
+            srcs: ["ims/lib64/libmtk_vt_wrapper.so"],
+        },
+    },
+}
+
+cc_prebuilt_library_shared {
+    name: "libvcodec_cap",
+    defaults: ["jelly_star_stock_lib_defaults"],
+    arch: {
+        arm64: {
+            srcs: ["ims/lib64/libvcodec_cap.so"],
+        },
+    },
+}
+
+cc_prebuilt_library_shared {
+    name: "libvcodec_capenc",
+    defaults: ["jelly_star_stock_lib_defaults"],
+    arch: {
+        arm64: {
+            srcs: ["ims/lib64/libvcodec_capenc.so"],
+        },
+    },
+}
+
+cc_prebuilt_library_shared {
+    name: "vendor.mediatek.hardware.videotelephony-V1-ndk",
+    defaults: ["jelly_star_stock_lib_defaults"],
+    arch: {
+        arm64: {
+            srcs: ["ims/lib64/vendor.mediatek.hardware.videotelephony-V1-ndk.so"],
+        },
+    },
+}
+
+cc_prebuilt_library_shared {
+    name: "vendor.mediatek.hardware.videotelephony@1.0",
+    defaults: ["jelly_star_stock_lib_defaults"],
+    arch: {
+        arm64: {
+            srcs: ["ims/lib64/vendor.mediatek.hardware.videotelephony@1.0.so"],
+        },
+    },
+}

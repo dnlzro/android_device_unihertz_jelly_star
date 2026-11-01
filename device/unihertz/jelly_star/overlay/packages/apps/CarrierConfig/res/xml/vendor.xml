@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<carrier_config_list>
+    <!-- Offer VoLTE and Wi-Fi Calling on every carrier, overriding a carrier's own settings for
+         these two only. Whether Wi-Fi Calling starts on stays up to the carrier's config, which
+         leaves it off unless it says otherwise. -->
+    <carrier_config>
+        <boolean name="carrier_volte_available_bool" value="true" />
+        <boolean name="carrier_wfc_ims_available_bool" value="true" />
+    </carrier_config>
+</carrier_config_list>

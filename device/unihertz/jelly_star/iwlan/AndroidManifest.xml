@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Wi-Fi transport for telephony. Runs inside the phone process, where PhoneFactory
+     has been set up. The ePDG tunnel itself is handled by the stock vendor (charon, epdg_wod). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.jellystar.iwlan"
+    android:sharedUserId="android.uid.phone">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+
+    <application
+        android:process="com.android.phone"
+        android:directBootAware="true"
+        android:defaultToDeviceProtectedStorage="true"
+        android:hasCode="true">
+
+        <service
+            android:name=".WlanDataService"
+            android:exported="true"
+            android:directBootAware="true"
+            android:permission="android.permission.BIND_TELEPHONY_DATA_SERVICE">
+            <intent-filter>
+                <action android:name="android.telephony.data.DataService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".WlanNetworkService"
+            android:exported="true"
+            android:directBootAware="true"
+            android:permission="android.permission.BIND_TELEPHONY_NETWORK_SERVICE">
+            <intent-filter>
+                <action android:name="android.telephony.NetworkService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".WlanQualifiedNetworksService"
+            android:exported="true"
+            android:directBootAware="true"
+            android:permission="android.permission.BIND_TELEPHONY_DATA_SERVICE">
+            <intent-filter>
+                <action android:name="android.telephony.data.QualifiedNetworksService" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

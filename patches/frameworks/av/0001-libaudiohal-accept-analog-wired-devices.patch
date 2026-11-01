@@ -1,0 +1,20 @@
+diff --git a/media/libaudiohal/impl/Hal2AidlMapper.cpp b/media/libaudiohal/impl/Hal2AidlMapper.cpp
+index 0f3863b..03fba24 100644
+--- a/media/libaudiohal/impl/Hal2AidlMapper.cpp
++++ b/media/libaudiohal/impl/Hal2AidlMapper.cpp
+@@ -1129,6 +1129,15 @@ status_t Hal2AidlMapper::setDevicePortConnectedState(const AudioPort& devicePort
+         // Use the ID of the "template" port, use all the information from the provided port.
+         AudioPort connectedPort = devicePort;
+         connectedPort.id = templatePort->id;
++        // MediaTek's primary module has no populateConnectedDevicePort override, so the HAL base
++        // class refuses every device with a connection type. An analog jack has nothing to
++        // populate: its profiles are in the configuration. Skip that step, as this flag does.
++        if (matchDevice.type.connection ==
++                ::aidl::android::media::audio::common::AudioDeviceDescription::CONNECTION_ANALOG) {
++            ::aidl::android::hardware::audio::core::ModuleDebug debug;
++            debug.simulateDeviceConnections = true;
++            RETURN_STATUS_IF_ERROR(statusTFromBinderStatus(mModule->setModuleDebug(debug)));
++        }
+         RETURN_STATUS_IF_ERROR(statusTFromBinderStatus(mModule->connectExternalDevice(
+                                 connectedPort, &connectedPort)));
+ 

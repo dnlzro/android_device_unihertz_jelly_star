@@ -1,0 +1,15 @@
+on early-init
+    # The kernel's default, /sbin/poweroff, doesn't exist here. It runs this on a thermal shutdown.
+    write /proc/sys/kernel/poweroff_cmd "/bin/reboot -p"
+
+on boot
+    # The lights HAL runs as system. Stock's own policy labels these, see genfs_contexts.
+    chown system system /sys/class/leds/red/brightness
+    chown system system /sys/class/leds/green/brightness
+    chown system system /sys/class/leds/blue/brightness
+    chown system system /sys/class/leds/red/blink
+    chown system system /sys/class/leds/green/blink
+    chown system system /sys/class/leds/blue/blink
+    chown system system /sys/class/leds/red/trigger
+    chown system system /sys/class/leds/green/trigger
+    chown system system /sys/class/leds/blue/trigger
